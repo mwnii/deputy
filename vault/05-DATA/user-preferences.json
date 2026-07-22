@@ -1,0 +1,26 @@
+{
+  "user": {
+    "name": "",
+    "timezone": "",
+    "working_hours": "",
+    "communication_style": "semi-formal"
+  },
+  "email": {
+    "signature": "",
+    "tone": "semi-formal",
+    "templates": []
+  },
+  "calendar": {
+    "calendar_name": "primary",
+    "default_duration_minutes": 30,
+    "default_reminder_minutes": 30,
+    "auto_decline_conflicts": false
+  },
+  "notifications": {
+    "urgent_senders": [],
+    "briefing_time": "08:00",
+    "calendar_reminders": true,
+    "quiet_hours_start": "22:00",
+    "quiet_hours_end": "07:00"
+  }
+}

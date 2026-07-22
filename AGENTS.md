@@ -123,6 +123,33 @@ After obtaining credentials:
 5. **Ollama** (optional) — local LLM inference
 6. **SearXNG** (optional) — self-hosted search engine
 
+## EA Onboarding System
+
+The EA agent runs a mandatory 10-phase onboarding on first launch.
+It checks `vault/02-EA/onboarding-status.json` to detect if onboarding
+is already complete. If not, it guides the user through each phase.
+
+**IMPORTANT:** This is the Deputy template repo. No personal data
+(user names, emails, API keys, platform accounts) should be committed
+to this repo. All credentials stay in `config/.env` (gitignored).
+The onboarding log tracks what services were configured without
+storing sensitive values.
+
+**Smart detection:** Before asking for any credential, the EA checks
+`config/.env` for existing values. Already-configured services are
+skipped automatically.
+
+**Phases:** User Identity → Groq API → Google OAuth → ntfy.sh →
+Platform Accounts → Email Prefs → Calendar Prefs → Notification Prefs →
+System Verification → Finalize
+
+**Status tracking:** `vault/02-EA/onboarding-status.json`
+**User prefs:** `vault/05-DATA/user-preferences.json`
+**Log:** `vault/02-EA/onboarding-log.md`
+**Script:** `tools/ea/onboarding.py`
+
+See `agents/ea.md` for full onboarding protocol.
+
 ## Communication Protocol
 
 ### Task Delegation Format
