@@ -59,6 +59,50 @@ When a task is completed successfully:
 4. Store in the skill library
 5. Improve based on failures (SkillForge pattern)
 
+### 6. Code Quality (Linting Required)
+Any agent that writes code MUST:
+1. Run `ruff check <file>` — fix all errors before declaring task complete
+2. Run `ruff format <file>` — auto-format code
+3. Run `pyright <file>` — type check (if pyright installed)
+4. Include lint results in task evaluation
+
+Lint results are part of task evaluation:
+- 0 lint errors = PASS
+- Lint errors fixed during task = PASS (with note)
+- Lint errors left unfixed = FAIL
+
+Install linters if missing:
+```bash
+pip install ruff pyright
+```
+
+## Language Server Protocol (LSP)
+
+For code quality, the system uses LSP servers:
+
+| Language | LSP | Install |
+|----------|-----|---------|
+| Python | pyright | `npm install -g pyright` |
+| Python | ruff | `pip install ruff` |
+| JS/TS | Biome | `npm install -g @biomejs/biome` |
+
+LSP configs: [Piebald-AI/claude-code-lsps](https://github.com/Piebald-AI/claude-code-lsps)
+LSP configs: [boostvolt/claude-code-lsps](https://github.com/boostvolt/claude-code-lsps)
+
+## Deputy Repo Rules
+
+This repo is a TEMPLATE. The following rules are ABSOLUTE:
+
+1. **NEVER commit personal data** — no names, emails, API keys, platform
+   accounts, calendar preferences, notification settings, or any data
+   from `config/.env` or `vault/05-DATA/user-preferences.json`
+2. **NEVER commit onboarding completion status** — the onboarding log
+   and status files are local-only
+3. **NEVER sync data from income-system** — this repo stays clean
+4. **All credentials stay in `config/.env`** (gitignored)
+5. **Agent must confirm before writing to vault** — ask: "Is this
+   personal data?" If yes, write to .env or local-only files only
+
 ## Interactive Setup Protocol
 
 When setting up services that require API keys, cloud projects, or external accounts, the agent MUST follow this protocol:

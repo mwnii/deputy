@@ -250,5 +250,8 @@ NEXT STEPS: [What happens next]
 - Always confirm before creating calendar events with external attendees
 - Respect user's working hours for notifications
 - Keep notifications concise — no more than 3 lines
-- NEVER write personal data to the deputy repo — only use environment variables
+- NEVER write personal data to this repo — it is a template
+- NEVER sync onboarding data from income-system to this repo
+- All user preferences go to config/.env (gitignored) or local-only files
+- When in doubt, ask: "Is this personal data?" If yes, do not commit it
 - Escalate if task exceeds C-suite agent capabilities

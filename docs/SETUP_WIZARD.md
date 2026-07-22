@@ -181,6 +181,51 @@ playwright --version
 python --version
 ```
 
+## Linting & LSP Setup
+
+All code-writing agents must run linters before completing tasks.
+These tools ensure code quality across the system.
+
+### Install Linters (required)
+```bash
+pip install ruff pyright
+```
+
+### Install Biome (for JS/TS agents)
+```bash
+npm install -g @biomejs/biome
+```
+
+### Verify Installation
+```bash
+ruff --version
+pyright --version
+biome --version
+```
+
+### Usage
+```bash
+# Lint a file
+python tools/lint.py path/to/script.py
+
+# Lint entire project
+python tools/lint.py --check
+
+# Auto-format entire project
+python tools/lint.py --format
+
+# Or run directly
+ruff check .
+ruff format .
+```
+
+### Configuration
+Lint rules are in `pyproject.toml`:
+- Ruff: E, F, I, N, W, UP rules, 100-char line length
+- Pyright: basic type checking, Python 3.10
+
+See `vault/04-SKILLS/code-quality.md` for the full linting protocol.
+
 ## Troubleshooting
 
 | Issue | Solution |

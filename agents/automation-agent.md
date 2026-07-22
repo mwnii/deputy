@@ -53,10 +53,13 @@ def automate_task(url, actions):
 
 ## Testing Protocol
 1. Write script in isolation
-2. Test with dummy data
-3. Test edge cases
-4. Test error recovery
-5. Deploy to production with monitoring
+2. Run linter: `ruff check <script>`
+3. Run formatter: `ruff format <script>`
+4. Fix any lint errors before testing
+5. Test with dummy data
+6. Test edge cases
+7. Test error recovery
+8. Deploy to production with monitoring
 
 ## MCP Server Integration
 Available MCP servers for automation:
