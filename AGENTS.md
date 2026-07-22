@@ -256,3 +256,18 @@ This system works with:
 - Always verify free tier before recommending tools
 - Always test before deploying changes
 - Log all decisions and reasoning
+
+### Personal Data Protection (MANDATORY)
+
+**Personal data must ONLY exist in gitignored files.** No exceptions.
+
+| Data Type | Safe Location | Gitignored? |
+|-----------|--------------|-------------|
+| Credentials (API keys, tokens) | `config/.env` | YES |
+| User preferences (name, email, calendar) | `vault/05-DATA/user-preferences.local.json` | YES |
+| Onboarding status | `vault/02-EA/onboarding-status.local.json` | YES |
+| Onboarding log | `vault/02-EA/onboarding-log.local.md` | YES |
+
+**Rule:** Before writing ANY personal data (name, email, phone, timezone,
+API keys, usernames), ask: "Is this file gitignored?" If not sure, use the
+`.local` variant. The onboarding script enforces this automatically.

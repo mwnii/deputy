@@ -6,6 +6,9 @@ Checks system state, detects already-configured services,
 and tracks onboarding progress. Designed to be called by the
 EA agent during onboarding flow.
 
+SECURITY: All personal data is written to .local.json/.local.md files
+which are gitignored. Never write PII to tracked files.
+
 Usage:
     python -m tools.ea.onboarding status    # Show what's configured
     python -m tools.ea.onboarding check     # Check onboarding completion
@@ -17,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,9 +28,16 @@ from typing import Any
 
 ROOT = Path(__file__).parent.parent.parent
 ENV_FILE = ROOT / "config" / ".env"
-STATUS_FILE = ROOT / "vault" / "02-EA" / "onboarding-status.json"
-LOG_FILE = ROOT / "vault" / "02-EA" / "onboarding-log.md"
-PREFS_FILE = ROOT / "vault" / "05-DATA" / "user-preferences.json"
+
+# Personal data files — ALWAYS use .local variants (gitignored)
+STATUS_FILE = ROOT / "vault" / "02-EA" / "onboarding-status.local.json"
+LOG_FILE = ROOT / "vault" / "02-EA" / "onboarding-log.local.md"
+PREFS_FILE = ROOT / "vault" / "05-DATA" / "user-preferences.local.json"
+
+# Tracked template files (read-only, never write PII here)
+STATUS_TRACKED = ROOT / "vault" / "02-EA" / "onboarding-status.json"
+LOG_TRACKED = ROOT / "vault" / "02-EA" / "onboarding-log.md"
+PREFS_TRACKED = ROOT / "vault" / "05-DATA" / "user-preferences.json"
 
 ONBOARDING_STEPS = [
     "user_identity",
@@ -66,6 +77,33 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _is_git_tracked(filepath: Path) -> bool:
+    """Check if a file is tracked by git."""
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", str(filepath)],
+            cwd=filepath.parent,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def _warn_if_tracked(filepath: Path, purpose: str) -> None:
+    """Warn if writing PII to a git-tracked file. Raise if critical."""
+    if _is_git_tracked(filepath):
+        print(
+            f"WARNING: {filepath.name} is git-tracked! "
+            f"Personal data in this file will be committed to git history.\n"
+            f"  File: {filepath}\n"
+            f"  Purpose: {purpose}\n"
+            f"  Fix: git rm --cached {filepath} && add to .gitignore",
+            file=sys.stderr,
+        )
+
+
 def _read_env() -> dict[str, str]:
     """Read .env file and return key-value pairs (excluding comments and empty values)."""
     env: dict[str, str] = {}
@@ -85,7 +123,7 @@ def _read_env() -> dict[str, str]:
 
 
 def _read_status() -> dict[str, Any]:
-    """Read onboarding status file."""
+    """Read onboarding status from local (gitignored) file."""
     if not STATUS_FILE.exists():
         return {
             "onboarding_complete": False,
@@ -97,7 +135,8 @@ def _read_status() -> dict[str, Any]:
 
 
 def _write_status(status: dict[str, Any]) -> None:
-    """Write onboarding status file."""
+    """Write onboarding status to local (gitignored) file."""
+    _warn_if_tracked(STATUS_FILE, "onboarding status tracking")
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATUS_FILE.write_text(
         json.dumps(status, indent=2, ensure_ascii=False),
@@ -106,14 +145,15 @@ def _write_status(status: dict[str, Any]) -> None:
 
 
 def _read_prefs() -> dict[str, Any]:
-    """Read user preferences."""
+    """Read user preferences from local (gitignored) file."""
     if not PREFS_FILE.exists():
         return {}
     return json.loads(PREFS_FILE.read_text(encoding="utf-8"))
 
 
 def _write_prefs(prefs: dict[str, Any]) -> None:
-    """Write user preferences."""
+    """Write user preferences to local (gitignored) file."""
+    _warn_if_tracked(PREFS_FILE, "user personal preferences")
     PREFS_FILE.parent.mkdir(parents=True, exist_ok=True)
     PREFS_FILE.write_text(
         json.dumps(prefs, indent=2, ensure_ascii=False),
@@ -122,7 +162,8 @@ def _write_prefs(prefs: dict[str, Any]) -> None:
 
 
 def _append_log(message: str) -> None:
-    """Append a message to the onboarding log."""
+    """Append a message to the onboarding log (local, gitignored)."""
+    _warn_if_tracked(LOG_FILE, "onboarding log with personal data")
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     if not LOG_FILE.exists():
@@ -134,6 +175,23 @@ def _append_log(message: str) -> None:
         )
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"## [{timestamp}]\n\n{message}\n\n---\n\n")
+
+
+def _check_all_local() -> dict[str, Any]:
+    """Verify that personal data files are NOT git-tracked."""
+    issues = []
+    for filepath, label in [
+        (STATUS_FILE, "onboarding-status"),
+        (LOG_FILE, "onboarding-log"),
+        (PREFS_FILE, "user-preferences"),
+    ]:
+        if _is_git_tracked(filepath):
+            issues.append(
+                f"SECURITY: {label} is git-tracked. Run:\n"
+                f"  git rm --cached {filepath}\n"
+                f"  (file is already in .gitignore)"
+            )
+    return {"secure": len(issues) == 0, "issues": issues}
 
 
 def get_env_status() -> dict[str, dict[str, Any]]:
@@ -160,6 +218,7 @@ def get_onboarding_status() -> dict[str, Any]:
     """Get full onboarding status."""
     status = _read_status()
     env_status = get_env_status()
+    security = _check_all_local()
 
     steps_report = {}
     for step in ONBOARDING_STEPS:
@@ -176,6 +235,7 @@ def get_onboarding_status() -> dict[str, Any]:
         "onboarding_complete": status.get("onboarding_complete", False),
         "completed_at": status.get("completed_at"),
         "steps": steps_report,
+        "security": security,
     }
 
 
@@ -219,7 +279,7 @@ def save_user_identity(
     working_hours: str,
     communication_style: str = "semi-formal",
 ) -> dict[str, Any]:
-    """Save user identity information."""
+    """Save user identity information to local (gitignored) file."""
     prefs = _read_prefs()
     prefs["user"] = {
         "name": name,
@@ -231,7 +291,7 @@ def save_user_identity(
     _write_prefs(prefs)
     _append_log(
         f"**User identity saved:**\n"
-        f"- Name: {name}\n"
+        f"- Name: [redacted]\n"
         f"- Timezone: {timezone_str}\n"
         f"- Working hours: {working_hours}\n"
         f"- Communication style: {communication_style}"
@@ -244,7 +304,7 @@ def save_email_preferences(
     tone: str = "semi-formal",
     templates: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Save email preferences."""
+    """Save email preferences to local (gitignored) file."""
     prefs = _read_prefs()
     prefs["email"] = {
         "signature": signature,
@@ -255,7 +315,7 @@ def save_email_preferences(
     _write_prefs(prefs)
     _append_log(
         f"**Email preferences saved:**\n"
-        f"- Signature: {signature}\n"
+        f"- Signature: [redacted]\n"
         f"- Tone: {tone}\n"
         f"- Templates: {len(templates or [])} templates"
     )
@@ -268,7 +328,7 @@ def save_calendar_preferences(
     default_reminder_min: int = 30,
     auto_decline_conflicts: bool = False,
 ) -> dict[str, Any]:
-    """Save calendar preferences."""
+    """Save calendar preferences to local (gitignored) file."""
     prefs = _read_prefs()
     prefs["calendar"] = {
         "calendar_name": calendar_name,
@@ -295,7 +355,7 @@ def save_notification_preferences(
     quiet_hours_start: str = "22:00",
     quiet_hours_end: str = "07:00",
 ) -> dict[str, Any]:
-    """Save notification preferences."""
+    """Save notification preferences to local (gitignored) file."""
     prefs = _read_prefs()
     prefs["notifications"] = {
         "urgent_senders": urgent_senders or [],
@@ -308,7 +368,7 @@ def save_notification_preferences(
     _write_prefs(prefs)
     _append_log(
         f"**Notification preferences saved:**\n"
-        f"- Urgent senders: {urgent_senders or 'none specified'}\n"
+        f"- Urgent senders: {len(urgent_senders or [])} configured\n"
         f"- Daily briefing: {briefing_time}\n"
         f"- Calendar reminders: {calendar_reminders}\n"
         f"- Quiet hours: {quiet_hours_start} - {quiet_hours_end}"
@@ -334,7 +394,7 @@ def save_platform_accounts(
         updates.append(f"DATAANNOTATION_EMAIL={dataannotation_email}")
 
     if updates:
-        # Append to .env
+        # Append to .env (gitignored — safe)
         ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(ENV_FILE, "a", encoding="utf-8") as f:
             f.write("\n# --- Platform Accounts ---\n")
@@ -343,16 +403,23 @@ def save_platform_accounts(
 
     _append_log(
         f"**Platform accounts saved:**\n"
-        f"- Fiverr: {fiverr_username or 'not configured'}\n"
-        f"- Upwork: {upwork_username or 'not configured'}\n"
-        f"- Outlier: {outlier_email or 'not configured'}\n"
-        f"- DataAnnotation: {dataannotation_email or 'not configured'}"
+        f"- Fiverr: {'configured' if fiverr_username else 'not configured'}\n"
+        f"- Upwork: {'configured' if upwork_username else 'not configured'}\n"
+        f"- Outlier: {'configured' if outlier_email else 'not configured'}\n"
+        f"- DataAnnotation: {'configured' if dataannotation_email else 'not configured'}"
     )
     return {"saved": True, "updates": updates}
 
 
 def finalize_onboarding() -> dict[str, Any]:
     """Finalize onboarding — mark complete and log summary."""
+    security = _check_all_local()
+    if not security["secure"]:
+        return {
+            "error": "Cannot finalize: personal data files are still git-tracked",
+            "issues": security["issues"],
+        }
+
     status = _read_status()
     all_done = all(
         status.get("steps", {}).get(s, {}).get("complete", False)
@@ -376,7 +443,8 @@ def finalize_onboarding() -> dict[str, Any]:
     _append_log(
         "## Onboarding Complete\n\n"
         "All 10 phases completed successfully.\n"
-        "System is ready for normal operations."
+        "System is ready for normal operations.\n"
+        "All personal data stored in local (gitignored) files."
     )
 
     return {
@@ -392,6 +460,15 @@ def print_status() -> None:
     print(f"\n=== Onboarding Status: {status} ===")
     if report["completed_at"]:
         print(f"Completed at: {report['completed_at']}")
+
+    # Security check
+    sec = report["security"]
+    if sec["secure"]:
+        print("Security: OK — all personal data files are gitignored")
+    else:
+        print("Security: WARNING — files may be git-tracked:")
+        for issue in sec["issues"]:
+            print(f"  {issue}")
     print()
 
     for step, info in report["steps"].items():
