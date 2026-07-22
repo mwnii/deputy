@@ -1,0 +1,134 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "ceo": {
+      "description": "Strategic orchestrator - makes decisions, delegates to C-suite, verifies outcomes",
+      "mode": "subagent",
+      "prompt": "{file:./agents/ceo.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "ea": {
+      "description": "Executive assistant - task routing, coordination, email/calendar/tasks, phone notifications",
+      "mode": "subagent",
+      "prompt": "{file:./agents/ea.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "cmo": {
+      "description": "Marketing officer - outreach campaigns, content strategy, lead generation",
+      "mode": "subagent",
+      "prompt": "{file:./agents/cmo.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "cfo": {
+      "description": "Finance officer - income tracking, invoicing, platform accounts, KPIs",
+      "mode": "subagent",
+      "prompt": "{file:./agents/cfo.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "cto": {
+      "description": "Technology officer - automation, tools, system health, self-improvement",
+      "mode": "subagent",
+      "prompt": "{file:./agents/cto.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "coo": {
+      "description": "Operations officer - client work, project management, quality control",
+      "mode": "subagent",
+      "prompt": "{file:./agents/coo.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "research-agent": {
+      "description": "Deep research specialist - spawns 10 sub-agents, compiles evidence-backed reports",
+      "mode": "subagent",
+      "prompt": "{file:./agents/research-agent.md}",
+      "permission": {
+        "task": {
+          "*": "allow"
+        }
+      }
+    },
+    "outreach-agent": {
+      "description": "Cold outreach specialist - email/DM campaigns, follow-up sequences",
+      "mode": "subagent",
+      "prompt": "{file:./agents/outreach-agent.md}"
+    },
+    "content-agent": {
+      "description": "Content creator - blog posts, social media, portfolio pieces",
+      "mode": "subagent",
+      "prompt": "{file:./agents/content-agent.md}"
+    },
+    "freelance-agent": {
+      "description": "Client work executor - Fiverr/Upwork orders, proposals, deliverables",
+      "mode": "subagent",
+      "prompt": "{file:./agents/freelance-agent.md}"
+    },
+    "microtask-agent": {
+      "description": "Platform task specialist - Outlier, DataAnnotation, microtask execution",
+      "mode": "subagent",
+      "prompt": "{file:./agents/microtask-agent.md}"
+    },
+    "automation-agent": {
+      "description": "Automation builder - Playwright scripts, API integrations, tool maintenance",
+      "mode": "subagent",
+      "prompt": "{file:./agents/automation-agent.md}"
+    }
+  },
+  "mcp": {
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "enabled": true,
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@anthropic-ai/mcp-playwright"],
+      "enabled": true
+    },
+    "google_workspace": {
+      "type": "local",
+      "command": ["uvx", "workspace-mcp"],
+      "enabled": true,
+      "environment": {
+        "GOOGLE_OAUTH_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+      }
+    },
+    "ntfy": {
+      "type": "local",
+      "command": ["python", "tools/ntfy_mcp/server.py"],
+      "enabled": true,
+      "environment": {
+        "NTFY_TOPIC": "${NTFY_TOPIC}",
+        "NTFY_SERVER": "https://ntfy.sh"
+      }
+    }
+  },
+  "subagent_depth": 2
+}

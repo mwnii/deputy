@@ -1,0 +1,92 @@
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.secret
+
+# Personal data (vault contents, not structure)
+vault/01-CEO/daily-briefings/*.md
+vault/01-CEO/weekly-reviews/*.md
+vault/01-CEO/strategy/*.md
+vault/02-EA/task-queue/*.md
+vault/02-EA/delegation-log/*.md
+vault/02-EA/status-reports/*.md
+vault/03-C-SUITE/**/income-tracker/*.md
+vault/03-C-SUITE/**/invoices/*.md
+vault/03-C-SUITE/**/client-work/*.md
+vault/04-SUBORDINATES/**/*.md
+vault/05-DATA/daily-metrics/*.md
+vault/05-DATA/weekly-kpis/*.md
+vault/05-DATA/monthly-review/*.md
+vault/07-ARCHIVE/*.md
+self-improve/reflections/*.md
+self-improve/skills/*.md
+self-improve/lessons/*.md
+
+# Databases & checkpoints
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+checkpoints/
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv/
+venv/
+ENV/
+
+# Ollama models
+*.gguf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Docker volumes (local data)
+docker-data/
+searxng-data/

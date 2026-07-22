@@ -1,0 +1,46 @@
+{
+  "revenue": {
+    "daily_target": 35.71,
+    "weekly_target": 250,
+    "monthly_target": 1000,
+    "hourly_target": 7.14,
+    "currency": "USD"
+  },
+  "platforms": {
+    "outlier": {
+      "hourly_range": [15, 60],
+      "weekly_target": 100,
+      "daily_hours": 2
+    },
+    "fiverr": {
+      "weekly_orders": 3,
+      "avg_order_value": 25
+    },
+    "upwork": {
+      "weekly_contracts": 1,
+      "avg_contract_value": 100
+    },
+    "dataannotation": {
+      "daily_hours": 2,
+      "daily_target": 15
+    }
+  },
+  "outreach": {
+    "daily_emails_dms": 20,
+    "weekly_emails_dms": 100,
+    "response_rate_target": 0.05,
+    "conversion_rate_target": 0.02
+  },
+  "system_health": {
+    "agent_uptime_target": 0.95,
+    "task_completion_target": 0.90,
+    "error_rate_max": 0.05,
+    "max_task_minutes": 30
+  },
+  "self_improvement": {
+    "skills_created_per_week": 2,
+    "lessons_extracted_per_day": 3,
+    "reflection_frequency": "daily",
+    "prompt_optimization_frequency": "weekly"
+  }
+}

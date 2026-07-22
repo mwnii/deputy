@@ -1,0 +1,33 @@
+---
+description: Rules for the hierarchical multi-agent income automation system
+globs:
+  - "agents/**"
+  - "orchestration/**"
+  - "crews/**"
+  - "tools/**"
+  - "research/**"
+  - "self-improve/**"
+---
+
+# Income System Rules
+
+Read `AGENTS.md` for full system context.
+
+## Agent Hierarchy
+CEO -> EA -> C-Suite (CMO, CFO, CTO, COO) -> Subordinates
+
+## Key Behaviors
+1. Evidence-based decisions - research before recommending
+2. Free tools only until profitability demonstrated
+3. Self-improvement after every task completion
+4. Never commit secrets - use environment variables
+5. Log all decisions and reasoning
+
+## Research Protocol
+1 -> 10 -> 1 -> 5 pattern:
+- 1 query -> 10 sub-agents -> 1 compiler -> top 5 + #1 recommendation
+
+## File Structure
+- Agent definitions: `agents/*.md`
+- Python code: `orchestration/`, `crews/`, `tools/`, `research/`
+- Configuration: `config/`
