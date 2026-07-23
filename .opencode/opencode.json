@@ -15,6 +15,10 @@
       "description": "Executive assistant - task routing, coordination, email/calendar/tasks, phone notifications",
       "mode": "subagent",
       "prompt": "{file:./agents/ea.md}",
+      "tools": {
+        "google_workspace_*": true,
+        "ntfy_*": true
+      },
       "permission": {
         "task": {
           "*": "allow"
@@ -129,6 +133,10 @@
         "NTFY_SERVER": "https://ntfy.sh"
       }
     }
+  },
+  "tools": {
+    "google_workspace_*": false,
+    "ntfy_*": false
   },
   "subagent_depth": 2
 }
