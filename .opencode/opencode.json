@@ -7,9 +7,13 @@
       "mode": "primary",
       "prompt": "{file:../agents/ea.md}",
       "permission": {
-        "task": {
-          "*": "allow"
-        }
+        "task": { "*": "allow" },
+        "read": { "*": "allow" },
+        "write": { "*": "allow" },
+        "bash": { "*": "allow" },
+        "glob": { "*": "allow" },
+        "edit": { "*": "allow" },
+        "external_directory": { "*": "allow" }
       }
     },
     "cmo": {
