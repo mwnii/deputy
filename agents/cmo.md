@@ -50,4 +50,4 @@ Maintain templates for:
 - No spam - respect platform TOS
 - Personalize outreach (no generic blasts)
 - Track all outreach in delegation log
-- Escalate low response rates to CEO for strategy adjustment
+- Escalate low response rates to EA for strategy adjustment

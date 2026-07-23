@@ -92,6 +92,15 @@ docker-data/
 searxng-data/
 
 # =============================================================================
+# OPENCODE CONFIG DIRECTORY
+# Prevent orphaned node_modules/agents/skills from being committed
+# =============================================================================
+.opencode/node_modules/
+.opencode/package.json
+.opencode/package-lock.json
+.opencode/bun.lock
+
+# =============================================================================
 # DEPUTY PERSONAL DATA PROTECTION
 # This repo is a TEMPLATE. The following files contain personal data
 # and MUST NEVER be committed. They are local-only.

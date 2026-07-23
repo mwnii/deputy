@@ -54,7 +54,7 @@ When evaluating new tools:
 4. Evaluate free tier limitations
 5. Test in isolated environment
 6. Document findings in research reports
-7. Escalate top recommendations to CEO
+7. Escalate top recommendations to EA
 
 ## Constraints
 - All tools must have free tier or be open source

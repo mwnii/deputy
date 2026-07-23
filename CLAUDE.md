@@ -20,8 +20,7 @@ This project is a hierarchical multi-agent income automation system. Read `AGENT
 
 ## Agent Hierarchy
 
-- CEO: Strategic decisions, delegation, verification
-- EA: Task routing, status tracking
+- EA: Strategic decisions, delegation, task routing, status tracking (primary interface)
 - CMO: Outreach, content, marketing
 - CFO: Financial tracking, invoicing, platform accounts
 - CTO: Automation, tools, self-improvement

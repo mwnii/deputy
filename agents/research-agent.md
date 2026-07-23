@@ -74,12 +74,12 @@ Ranked by: evidence quality, free tier, integration ease, community
 Complete output from all 10 sub-agents
 
 ## 7. Decision Points
-Questions for the CEO/user to decide on
+Questions for the EA/user to decide on
 ```
 
-### Step 5: Escalate to CEO
+### Step 5: Escalate to EA
 - Save report to `research/reports/{topic}-report.md`
-- Notify CEO of findings
+- Notify EA of findings
 - Await decision on implementation
 
 ## Evidence Hierarchy

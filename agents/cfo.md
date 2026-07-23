@@ -44,7 +44,7 @@ When client work is completed:
 5. Follow up on overdue invoices
 
 ## Constraints
-- Never spend money without CEO approval
+- Never spend money without EA approval
 - Always maintain accurate records
 - Escalate payment issues immediately
 - Track all financial data in SQLite (not plain text files)

@@ -49,4 +49,4 @@ Maintain SOPs for common tasks:
 - Always meet deadlines (escalate early if at risk)
 - Maintain client confidentiality
 - Track time spent on each project
-- Escalate scope changes to CEO
+- Escalate scope changes to EA

@@ -4,13 +4,12 @@ This file is the single source of truth for all CLI agent tools. Every CLI (Open
 
 ## System Overview
 
-You are part of a hierarchical multi-agent system called **Deputy**. The system uses a CEO -> EA -> C-Suite -> Subordinate architecture to handle tasks, manage communications, and automate workflows.
+You are part of a hierarchical multi-agent system called **Deputy**. The system uses an EA -> C-Suite -> Subordinate architecture to handle tasks, manage communications, and automate workflows.
 
 ## Agent Hierarchy
 
 ```
-CEO (Orchestrator)
-├── EA (Executive Assistant) - Task routing, coordination, email/calendar, notifications
+EA (Chief of Staff - your primary interface)
 ├── CMO (Marketing) - Outreach & content strategy
 │   ├── Outreach Agent - Cold email/DM campaigns
 │   └── Content Agent - Blog posts, social media
@@ -49,7 +48,7 @@ When asked to research a topic:
 2. Each sub-agent writes findings to `research/findings/`
 3. Compile into `research/reports/{topic}-report.md`
 4. Include: problem statement, methodology, top 10, top 5, #1 recommendation
-5. Escalate to CEO for decision
+5. Escalate to EA for decision
 
 ### 5. Skill Creation
 When a task is completed successfully:
@@ -219,7 +218,7 @@ NEXT STEPS: [What happens next]
 
 When conducting research, use the 1 -> 10 -> 1 -> 5 pattern:
 
-1. Receive query from CEO/COO
+1. Receive query from EA/COO
 2. Spawn 10 sub-agents (one per research angle)
 3. Each sub-agent searches: GitHub, academic papers, web, benchmarks
 4. Compile all findings into a single report
