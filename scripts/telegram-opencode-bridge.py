@@ -4,12 +4,13 @@ Telegram-to-OpenCode Bridge
 Sends voice notes and text messages from Telegram to opencode and returns responses.
 """
 
-import asyncio
-import logging
 import os
 import sys
+import asyncio
 import tempfile
+import logging
 from pathlib import Path
+from typing import Optional
 
 import httpx
 from groq import Groq
@@ -17,14 +18,19 @@ from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
-    ContextTypes,
     MessageHandler,
+    ContextTypes,
     filters,
 )
 
+_LOG_DIR = Path(__file__).parent
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     level=logging.INFO,
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(_LOG_DIR / "bridge.log", encoding="utf-8"),
+    ],
 )
 logger = logging.getLogger("tg-bridge")
 
@@ -70,10 +76,11 @@ def load_env():
 
 
 class OpenCodeClient:
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, groq_api_key: str = ""):
         self.base = f"{host}:{port}"
-        self.session_id: str | None = None
+        self.session_id: Optional[str] = None
         self.http = httpx.AsyncClient(base_url=self.base, timeout=300.0)
+        self._groq = Groq(api_key=groq_api_key) if groq_api_key else None
 
     async def _create_session(self) -> str:
         resp = await self.http.post("/session", json={"title": "Telegram Bridge"})
@@ -97,6 +104,38 @@ class OpenCodeClient:
         logger.info("Session invalid or missing, creating new session")
         return await self._create_session()
 
+    def _groq_fallback(self, text: str) -> str:
+        if not self._groq:
+            return (
+                "(no text response — model unavailable and no Groq fallback configured)"
+            )
+        try:
+            logger.info("Falling back to Groq for response")
+            completion = self._groq.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a helpful assistant accessed via Telegram. "
+                            "Keep responses concise and direct."
+                        ),
+                    },
+                    {"role": "user", "content": text},
+                ],
+                max_tokens=2048,
+                temperature=0.7,
+            )
+            reply = completion.choices[0].message.content or ""
+            if reply.strip():
+                logger.info("Groq fallback succeeded (%d chars)", len(reply))
+                return reply
+            logger.warning("Groq returned empty response")
+            return "(model unavailable — empty response from fallback)"
+        except Exception as e:
+            logger.error("Groq fallback failed (%s: %s)", type(e).__name__, e)
+            return f"(model unavailable — fallback error: {e})"
+
     async def _send_raw(self, text: str) -> str:
         session_id = await self.ensure_session()
         resp = await self.http.post(
@@ -110,9 +149,16 @@ class OpenCodeClient:
         data = resp.json()
         parts = data.get("parts", [])
         text_parts = [p["text"] for p in parts if p.get("type") == "text"]
-        return "\n".join(text_parts) if text_parts else "(no text response)"
+        if text_parts:
+            return "\n".join(text_parts)
+        logger.warning(
+            "OpenCode returned no text parts (model may be down), falling back to Groq"
+        )
+        return self._groq_fallback(text)
 
-    async def send_prompt(self, text: str, status_callback: object | None = None) -> str:
+    async def send_prompt(
+        self, text: str, status_callback: Optional[object] = None
+    ) -> str:
         # Try current session first
         try:
             return await self._send_raw(text)
@@ -161,8 +207,8 @@ class Transcriber:
         return result.text
 
 
-oc_client: OpenCodeClient | None = None
-transcriber: Transcriber | None = None
+oc_client: Optional[OpenCodeClient] = None
+transcriber: Optional[Transcriber] = None
 
 
 def is_authorized(update: Update) -> bool:
@@ -192,7 +238,7 @@ async def cmd_new(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global oc_client
     if oc_client:
         await oc_client.close()
-    oc_client = OpenCodeClient(OPENCODE_HOST, OPENCODE_PORT)
+    oc_client = OpenCodeClient(OPENCODE_HOST, OPENCODE_PORT, GROQ_API_KEY)
     await oc_client.ensure_session()
     await update.message.reply_text("New opencode session created.")
 
@@ -202,7 +248,9 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     try:
         async with httpx.AsyncClient() as c:
-            r = await c.get(f"{OPENCODE_HOST}:{OPENCODE_PORT}/global/health", timeout=5.0)
+            r = await c.get(
+                f"{OPENCODE_HOST}:{OPENCODE_PORT}/global/health", timeout=5.0
+            )
             if r.status_code == 200:
                 info = r.json()
                 await update.message.reply_text(
@@ -210,7 +258,9 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"Session: {oc_client.session_id or 'none'}"
                 )
             else:
-                await update.message.reply_text(f"opencode responded with {r.status_code}")
+                await update.message.reply_text(
+                    f"opencode responded with {r.status_code}"
+                )
     except Exception as e:
         await update.message.reply_text(f"Cannot reach opencode: {e}")
 
@@ -274,16 +324,22 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elapsed_ref = [0]
     cancel_event = asyncio.Event()
     _cancel_events[update.effective_user.id] = cancel_event
-    timer = asyncio.create_task(_periodic_status_edit(status_msg, elapsed_ref, cancel_event))
+    timer = asyncio.create_task(
+        _periodic_status_edit(status_msg, elapsed_ref, cancel_event)
+    )
 
     try:
-        response = await oc_client.send_prompt(text, status_callback=_make_status_cb(status_msg))
+        response = await oc_client.send_prompt(
+            text, status_callback=_make_status_cb(status_msg)
+        )
         for chunk in split_message(response):
             await update.message.reply_text(chunk)
         await status_msg.delete()
     except Exception as e:
         logger.error("opencode error (%s: %s)", type(e).__name__, e)
-        await status_msg.edit_text("Error: Could not reach OpenCode server. Please try again.")
+        await status_msg.edit_text(
+            "Error: Could not reach OpenCode server. Please try again."
+        )
     finally:
         timer.cancel()
         cancel_event.set()
@@ -306,7 +362,9 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             tmp_path = tmp.name
             await file.download_to_drive(tmp_path)
 
-        logger.info("Voice downloaded to %s (%d seconds)", tmp_path, voice.duration or 0)
+        logger.info(
+            "Voice downloaded to %s (%d seconds)", tmp_path, voice.duration or 0
+        )
 
         text = await asyncio.get_event_loop().run_in_executor(
             None, transcriber.transcribe_file, tmp_path
@@ -331,7 +389,9 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elapsed_ref = [0]
         cancel_event = asyncio.Event()
         _cancel_events[update.effective_user.id] = cancel_event
-        timer = asyncio.create_task(_periodic_status_edit(status_msg, elapsed_ref, cancel_event))
+        timer = asyncio.create_task(
+            _periodic_status_edit(status_msg, elapsed_ref, cancel_event)
+        )
 
         try:
             response = await oc_client.send_prompt(
@@ -388,7 +448,9 @@ async def handle_video_note(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elapsed_ref = [0]
         cancel_event = asyncio.Event()
         _cancel_events[update.effective_user.id] = cancel_event
-        timer = asyncio.create_task(_periodic_status_edit(status_msg, elapsed_ref, cancel_event))
+        timer = asyncio.create_task(
+            _periodic_status_edit(status_msg, elapsed_ref, cancel_event)
+        )
 
         try:
             response = await oc_client.send_prompt(
@@ -446,7 +508,9 @@ async def handle_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elapsed_ref = [0]
         cancel_event = asyncio.Event()
         _cancel_events[update.effective_user.id] = cancel_event
-        timer = asyncio.create_task(_periodic_status_edit(status_msg, elapsed_ref, cancel_event))
+        timer = asyncio.create_task(
+            _periodic_status_edit(status_msg, elapsed_ref, cancel_event)
+        )
 
         try:
             response = await oc_client.send_prompt(
@@ -509,7 +573,9 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elapsed_ref = [0]
         cancel_event = asyncio.Event()
         _cancel_events[update.effective_user.id] = cancel_event
-        timer = asyncio.create_task(_periodic_status_edit(status_msg, elapsed_ref, cancel_event))
+        timer = asyncio.create_task(
+            _periodic_status_edit(status_msg, elapsed_ref, cancel_event)
+        )
 
         try:
             response = await oc_client.send_prompt(
@@ -551,7 +617,7 @@ def split_message(text: str, max_len: int = 4000) -> list[str]:
 
 async def post_init(app):
     global oc_client, transcriber
-    oc_client = OpenCodeClient(OPENCODE_HOST, OPENCODE_PORT)
+    oc_client = OpenCodeClient(OPENCODE_HOST, OPENCODE_PORT, GROQ_API_KEY)
     transcriber = Transcriber(GROQ_API_KEY)
     await oc_client.ensure_session()
     logger.info("Bridge initialized. Session: %s", oc_client.session_id)
