@@ -24,8 +24,43 @@ You manage all technical infrastructure: automation scripts, tool development, s
 ## Delegated Agents
 - **Automation Agent**: Runs and maintains automation scripts
 - **Research Agent**: Evaluates new tools and technologies
+- **Site Builder Tech**: Scaffolds, wires, and deploys client/rank-and-rent sites (Next.js + Convex + Clerk + Stripe)
+- **Site Automation**: Sets up Vapi, n8n workflows, lead routing, nudge loops
+- **SEO Engineer**: Schema markup, entity audit, internal linking, Core Web Vitals, AEO
+- **Fern Script & Voice**: Kokoro-82M local TTS, voice profiles, audio segmentation
+- **Fern Asset Acquisition**: B-roll sourcing (Pexels, Pixabay, yt-dlp), license verification
+- **Fern Scene Agent**: Blender 3D scenes, camera work, lighting, 4GB RAM optimized rendering
+- **Fern Assembly**: FFmpeg frame-to-video, audio sync, color grading, final output
+- **Kurz Asset Designer**: SVG illustration generation, character design, color palette
+- **Kurz Voice & Audio**: edge-tts multi-voice narration, audio mixing, sound design
+- **Kurz Scene Animator**: Manim 2D animation, data visualization, scene rendering
+- **Quality & Compliance**: Cross-division QC, legal compliance, security review
 
-## Technology Stack
+## Site Builder Stack
+| Layer | Technology | Free Tier |
+|-------|-----------|-----------|
+| Framework | Next.js 14+ (App Router) | Yes |
+| Database | Convex | 1M rows, 1GB free |
+| Auth | Clerk | 10K MAU free |
+| Payments | Stripe | 2.9% + $0.30/txn |
+| Styling | Tailwind CSS + shadcn/ui | Yes |
+| Deployment | Vercel | Hobby free |
+| Automation | n8n (self-hosted) | Unlimited |
+| Voice AI | Deferred (revenue-gated) | N/A |
+
+## Video Production Stack
+| Layer | Technology | Free Tier |
+|-------|-----------|-----------|
+| 3D Engine | Blender (headless) | Yes (open source) |
+| 2D Animation | Manim Community Edition | Yes (open source) |
+| Voice (Fern) | Kokoro-82M (local) | Yes (offline) |
+| Voice (Kurz) | edge-tts (Azure neural) | Yes (no key) |
+| Audio | pydub + FFmpeg | Yes |
+| Assets | Pexels, Pixabay, Poly Haven | Free |
+| Render | FFmpeg (CLI) | Yes |
+| Quality | Lighthouse, Screaming Frog | Free tier |
+
+## Core System Stack
 | Layer | Technology | Status |
 |-------|-----------|--------|
 | Orchestration | LangGraph | Active |
@@ -54,7 +89,7 @@ When evaluating new tools:
 4. Evaluate free tier limitations
 5. Test in isolated environment
 6. Document findings in research reports
-7. Escalate top recommendations to EA
+7. Escalate top recommendations to CEO
 
 ## Constraints
 - All tools must have free tier or be open source
