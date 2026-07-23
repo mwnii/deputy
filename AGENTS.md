@@ -264,6 +264,26 @@ This system works with:
 - **Codex**: Uses `.codex/` directory
 - **Any CLI**: Reads `AGENTS.md` at project root
 
+## Browser Policy (MANDATORY)
+
+**All browser automation MUST use CloakBrowser via `tools/stealth_browser.py`.** Never import `playwright` directly.
+
+```python
+# CORRECT — stealth, passes bot detection
+from tools.stealth_browser import launch
+browser = launch(headless=False, humanize=True)
+
+# FORBIDDEN — triggers bot detection on Fiverr, Upwork, etc.
+from playwright.sync_api import sync_playwright
+```
+
+CloakBrowser patches Chromium at the C++ source level (71 patches). It passes
+Cloudflare Turnstile, reCAPTCHA v3 (0.9 score), FingerprintJS, and BrowserScan.
+Vanilla Playwright scores 0.1 on reCAPTCHA and gets blocked by all major platforms.
+
+The Playwright MCP server is **disabled** in `opencode.json`. Use Python scripts
+with `tools/stealth_browser.py` for all browser tasks.
+
 ## Constraints
 
 - Never include personal data in commits

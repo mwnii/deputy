@@ -104,7 +104,8 @@
     "playwright": {
       "type": "local",
       "command": ["npx", "-y", "@anthropic-ai/mcp-playwright"],
-      "enabled": true
+      "enabled": false,
+      "comment": "DISABLED: Use tools/stealth_browser.py (CloakBrowser) instead. Never use vanilla Playwright."
     },
     "google_workspace": {
       "type": "local",
